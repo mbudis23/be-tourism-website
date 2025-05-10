@@ -60,7 +60,7 @@ exports.deleteUser = async (req, res) => {
 };
 
 exports.insertUsers = async (req, res) => {
-  const filePath = '../db_query/user.csv';
+  const filePath = '/home/budi-setiawan/Documents/gdgoc/be-tourism-website/db_query/user.csv';
   const users = [];
 
   try {
