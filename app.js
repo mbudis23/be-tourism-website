@@ -11,8 +11,8 @@ const packageRoutes = require('./routes/packageRoutes');
 const aiRoutes = require("./routes/aiRoutes");
 const pool = require('./config/db');
 const corsOptions = {
-    origin: ["http://localhost:3000", "*", "https://fe-tourism-website.vercel.app/", "https://fe-tourism-website.vercel.app/search"],
-    credentials: true
+  origin: ["http://localhost:3000", 'https://fe-tourism-website.vercel.app'],
+  methods: ['GET', 'POST']
   };
 
 app.use(cors());
