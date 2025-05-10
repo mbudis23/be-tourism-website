@@ -11,7 +11,7 @@ const packageRoutes = require('./routes/packageRoutes');
 const aiRoutes = require("./routes/aiRoutes")
 
 const corsOptions = {
-    origin: ["http://localhost:3000", "*", "https://fe-tourism-website.vercel.app"],
+    origin: ["http://localhost:3000", "*", "https://fe-tourism-website.vercel.app/"],
     credentials: true
   };
 
