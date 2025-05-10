@@ -19,7 +19,7 @@ const pool = require('./config/db');
 
 // CORS configuration
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://fe-tourism-website.vercel.app"],
+  origin: "*",
   methods: ['GET', 'POST'],
   credentials: true, // jika kamu gunakan cookie atau auth header
 };
