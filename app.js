@@ -1,34 +1,47 @@
 const express = require('express');
-const app = express();
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const cors = require('cors');
+
 dotenv.config();
+
+const app = express();
+
+// Import routes
 const userRoutes = require('./routes/userRoutes');
 const placeRoutes = require('./routes/placeRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
 const packageRoutes = require('./routes/packageRoutes');
-const aiRoutes = require("./routes/aiRoutes");
-const pool = require('./config/db');
-const corsOptions = {
-  origin: ["http://localhost:3000", 'https://fe-tourism-website.vercel.app'],
-  methods: ['GET', 'POST']
-  };
+const aiRoutes = require('./routes/aiRoutes');
 
-app.use(cors());
+// Import DB pool
+const pool = require('./config/db');
+
+// CORS configuration
+const corsOptions = {
+  origin: ["http://localhost:3000", "https://fe-tourism-website.vercel.app"],
+  methods: ['GET', 'POST'],
+  credentials: true, // jika kamu gunakan cookie atau auth header
+};
+
+// Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/places', placeRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/packages', packageRoutes);
-app.use('/api/ai/', aiRoutes)
+app.use('/api/ai', aiRoutes);
+
+// Health check & DB test route
 app.get('/', async (req, res) => {
   try {
-    const client = await pool.connect(); // Coba koneksi ke DB
-    await client.query('SELECT NOW()');  // Tes query
-    client.release(); // Kembalikan koneksi ke pool
+    const client = await pool.connect();
+    await client.query('SELECT NOW()');
+    client.release();
 
     return res.json({
       status: "Connected to server and database"
@@ -42,5 +55,8 @@ app.get('/', async (req, res) => {
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
