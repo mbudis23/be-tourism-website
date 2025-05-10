@@ -164,3 +164,60 @@ exports.searchTourismPlaces = async (req, res) => {
   }
 };
 
+exports.searchTourismPlacesAI = async (req, res) => {
+  try {
+    const userQuery = req.body.query;
+    const cityFilter = req.body.city || 'Yogyakarta';
+    const limitValue = req.body.limit || 10;
+
+    if (!userQuery) {
+      return res.status(400).json({ error: 'Kueri pencarian tidak boleh kosong.' });
+    }
+
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const geminiModel = 'gemini-2.0-flash'; // Gunakan model yang sesuai dengan API
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`;
+
+    try {
+      const geminiResponse = await axios.post(geminiApiUrl, {
+        contents: [{
+          parts: [{ text: `Sebagai asisten pencarian tempat wisata di ${cityFilter}, interpretasikan kueri pengguna berikut dan ekstrak informasi relevan seperti jenis tempat dan kata kunci utama. Koreksi juga jika ada typo. Berikan jawaban dalam format JSON dengan kunci: "jenis_tempat", "kata_kunci".\n\nKueri: "${userQuery}"` }]
+        }]
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const geminiResultText = geminiResponse.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!geminiResultText) {
+        return res.status(500).json({ error: 'Gagal mendapatkan interpretasi dari Gemini API.' });
+      }
+
+      let geminiInterpretation;
+      try {
+        geminiInterpretation = JSON.parse(geminiResultText);
+      } catch (error) {
+        console.error('Gagal mem-parsing JSON dari Gemini:', geminiResultText, error);
+        return res.status(500).json({ error: 'Gagal memproses interpretasi dari Gemini.' });
+      }
+
+      const { kata_kunci, jenis_tempat } = geminiInterpretation;
+
+      const query = 'SELECT * FROM search_tourism_places_ai_v2($1, $2, $3)';
+      const values = [userQuery, cityFilter, limitValue]; // Kita mengirim userQuery agar logika mock di SQL bisa bekerja
+
+      const result = await pool.query(query, values);
+      res.json({ success: true, location: cityFilter, recommendations: result.rows });
+
+    } catch (error) {
+      console.error('Error calling Gemini API:', error.response ? error.response.data : error.message);
+      return res.status(500).json({ error: 'Gagal berkomunikasi dengan Gemini API.' });
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Terjadi kesalahan saat mencari tempat.' });
+  }
+};
