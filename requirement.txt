@@ -1,0 +1,7 @@
+pg
+dotenv
+morgan
+express
+csv-parser
+nodemon
+cors
